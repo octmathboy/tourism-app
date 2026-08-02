@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tourism Service Registration Portal</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f4f6f9;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 480px;
+    }
+    h2 {
+      color: #008080;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      color: #333;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #008080;
+    }
+    button {
+      background-color: #008080;
+      color: #ffffff;
+      font-weight: bold;
+      border: none;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+    }
+    button:hover {
+      background-color: #006666;
+    }
+    .btn-gps {
+      background-color: #2196F3;
+      margin-top: 8px;
+    }
+    .btn-gps:hover {
+      background-color: #1976D2;
+    }
+    .coord-container {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    #status {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .success-text {
+      color: #2e7d32;
+    }
+    .error-text {
+      color: #c62828;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Add New Tourism Service</h2>
+  
+  <form id="serviceForm">
+    <label for="category">Category / Target Screen:</label>
+    <select id="category" required>
+      <option value="">-- Select Category --</option>
+      <option value="hotel">🏨 Hotel / Accommodation (Services Screen)</option>
+      <option value="restaurant">🍽️ Restaurant / Cafe (Services Screen)</option>
+      <option value="place">🏛️ Attraction / Landmark (Places Screen)</option>
+      <option value="tour">🗺️ Guided Tour / Excursion (Tours Screen)</option>
+      <option value="taxi">🚕 Taxi / Transport (Tours Screen)</option>
+      <option value="guide">🧑‍💼 Tour Guide (Tours Screen)</option>
+    </select>
+
+    <label for="name">Service / Place Name:</label>
+    <input type="text" id="name" placeholder="e.g. Royal Hotel, City Museum, Airport Taxi" required>
+
+    <label for="phone">Phone / WhatsApp Number:</label>
+    <input type="tel" id="phone" placeholder="e.g. +213661234567" required>
+
+    <label for="address">Short Address / Description:</label>
+    <input type="text" id="address" placeholder="e.g. Downtown Blvd, opposite Central Park" required>
+
+    <label>GPS Location Coordinates:</label>
+    <button type="button" class="btn-gps" onclick="detectGPS()">📍 Detect Current GPS Coordinates</button>
+    
+    <div class="coord-container">
+      <input type="number" step="any" id="lat" placeholder="Latitude" required readonly>
+      <input type="number" step="any" id="lng" placeholder="Longitude" required readonly>
+    </div>
+
+    <button type="submit" id="submitBtn">💾 Save & Publish Entry</button>
+  </form>
+
+  <p id="status"></p>
+</div>
+
+<!-- Firebase SDK Modules -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // Your Firebase Configuration Credentials
+  const firebaseConfig = {
+    apiKey: "AIzaSyAMpi80yJqhAeU2DKRdcpJccZn-VM0jTI0",
+    authDomain: "tourism-app-b14df.firebaseapp.com",
+    projectId: "tourism-app-b14df",
+    storageBucket: "tourism-app-b14df.firebasestorage.app",
+    messagingSenderId: "996510101280",
+    appId: "1:996510101280:web:04a6d753c0efd88127f145",
+    measurementId: "G-2HKP1GWET8"
+  };
+
+  // Initialize Firebase and Firestore
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Browser Geolocation Helper Function
+  window.detectGPS = function() {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          document.getElementById('lat').value = position.coords.latitude;
+          document.getElementById('lng').value = position.coords.longitude;
+          alert("GPS Coordinates captured successfully!");
+        },
+        (error) => alert("Failed to fetch GPS coordinates: " + error.message),
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert("Geolocation is not supported by your browser.");
+    }
+  };
+
+  // Form Submission Handler
+  document.getElementById("serviceForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const statusEl = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+    const address = document.getElementById('address').value;
+    const category = document.getElementById('category').value;
+    const lat = parseFloat(document.getElementById('lat').value);
+    const lng = parseFloat(document.getElementById('lng').value);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      alert("Please capture the GPS location first!");
+      return;
+    }
+
+    submitBtn.innerText = "Saving Data...";
+    submitBtn.disabled = true;
+
+    try {
+      await addDoc(collection(db, "services"), {
+        name: name,
+        phone: phone,
+        address: address,
+        category: category,
+        lat: lat,
+        lng: lng,
+        createdAt: new Date()
+      });
+
+      statusEl.className = "success-text";
+      statusEl.innerText = "✅ Service successfully added to Firebase!";
+      document.getElementById('serviceForm').reset();
+    } catch (error) {
+      console.error("Firestore Error:", error);
+      statusEl.className = "error-text";
+      statusEl.innerText = "❌ Failed to save data. Please check your connection.";
+    } finally {
+      submitBtn.innerText = "💾 Save & Publish Entry";
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>
