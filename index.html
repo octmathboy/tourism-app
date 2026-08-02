@@ -32,17 +32,13 @@
       margin-bottom: 4px;
       color: #333;
     }
-    input, select, button {
+    input, select, textarea, button {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #ccc;
       border-radius: 6px;
       box-sizing: border-box;
       font-size: 14px;
-    }
-    input:focus, select:focus {
-      outline: none;
-      border-color: #008080;
     }
     button {
       background-color: #008080;
@@ -51,7 +47,6 @@
       border: none;
       margin-top: 20px;
       cursor: pointer;
-      transition: background 0.2s ease-in-out;
     }
     button:hover {
       background-color: #006666;
@@ -59,9 +54,6 @@
     .btn-gps {
       background-color: #2196F3;
       margin-top: 8px;
-    }
-    .btn-gps:hover {
-      background-color: #1976D2;
     }
     .coord-container {
       display: flex;
@@ -73,11 +65,11 @@
       text-align: center;
       font-weight: bold;
     }
-    .success-text {
-      color: #2e7d32;
-    }
-    .error-text {
-      color: #c62828;
+    .hint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+      display: block;
     }
   </style>
 </head>
@@ -93,22 +85,26 @@
       <option value="hotel">🏨 Hotel / Accommodation (Services Screen)</option>
       <option value="restaurant">🍽️ Restaurant / Cafe (Services Screen)</option>
       <option value="place">🏛️ Attraction / Landmark (Places Screen)</option>
-      <option value="tour">🗺️ Guided Tour / Excursion (Tours Screen)</option>
+      <option value="tour">🗺️ Guided Tour (Tours Screen)</option>
       <option value="taxi">🚕 Taxi / Transport (Tours Screen)</option>
       <option value="guide">🧑‍💼 Tour Guide (Tours Screen)</option>
     </select>
 
     <label for="name">Service / Place Name:</label>
-    <input type="text" id="name" placeholder="e.g. Royal Hotel, City Museum, Airport Taxi" required>
+    <input type="text" id="name" placeholder="e.g. Royal Hotel, National Museum" required>
 
     <label for="phone">Phone / WhatsApp Number:</label>
     <input type="tel" id="phone" placeholder="e.g. +213661234567" required>
 
     <label for="address">Short Address / Description:</label>
-    <input type="text" id="address" placeholder="e.g. Downtown Blvd, opposite Central Park" required>
+    <input type="text" id="address" placeholder="e.g. Main Boulevard, City Center" required>
+
+    <label for="imageUrls">Photo URLs (HTTPS):</label>
+    <textarea id="imageUrls" rows="3" placeholder="https://i.ibb.co/xxxx/image1.jpg, https://i.ibb.co/yyyy/image2.jpg" required></textarea>
+    <span class="hint">Upload images for free on <a href="https://imgbb.com/" target="_blank">ImgBB</a> and paste direct links here (separated by commas).</span>
 
     <label>GPS Location Coordinates:</label>
-    <button type="button" class="btn-gps" onclick="detectGPS()">📍 Detect Current GPS Coordinates</button>
+    <button type="button" class="btn-gps" onclick="detectGPS()">📍 Detect Current GPS Location</button>
     
     <div class="coord-container">
       <input type="number" step="any" id="lat" placeholder="Latitude" required readonly>
@@ -126,7 +122,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // Your Firebase Configuration Credentials
   const firebaseConfig = {
     apiKey: "AIzaSyAMpi80yJqhAeU2DKRdcpJccZn-VM0jTI0",
     authDomain: "tourism-app-b14df.firebaseapp.com",
@@ -137,11 +132,9 @@
     measurementId: "G-2HKP1GWET8"
   };
 
-  // Initialize Firebase and Firestore
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Browser Geolocation Helper Function
   window.detectGPS = function() {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -150,7 +143,7 @@
           document.getElementById('lng').value = position.coords.longitude;
           alert("GPS Coordinates captured successfully!");
         },
-        (error) => alert("Failed to fetch GPS coordinates: " + error.message),
+        (error) => alert("Failed to fetch location: " + error.message),
         { enableHighAccuracy: true }
       );
     } else {
@@ -158,12 +151,23 @@
     }
   };
 
-  // Form Submission Handler
   document.getElementById("serviceForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const statusEl = document.getElementById('status');
     const submitBtn = document.getElementById('submitBtn');
+    const rawUrls = document.getElementById('imageUrls').value;
+
+    // Parse and filter image URLs
+    const finalImageUrls = rawUrls
+      .split(',')
+      .map(url => url.trim())
+      .filter(url => url.startsWith('http://') || url.startsWith('https://'));
+
+    if (finalImageUrls.length === 0) {
+      alert("Please provide at least one valid image URL starting with https://");
+      return;
+    }
 
     const name = document.getElementById('name').value;
     const phone = document.getElementById('phone').value;
@@ -173,14 +177,15 @@
     const lng = parseFloat(document.getElementById('lng').value);
 
     if (isNaN(lat) || isNaN(lng)) {
-      alert("Please capture the GPS location first!");
+      alert("Please capture GPS location coordinates first!");
       return;
     }
 
-    submitBtn.innerText = "Saving Data...";
+    submitBtn.innerText = "Saving...";
     submitBtn.disabled = true;
 
     try {
+      // Save directly into Firestore
       await addDoc(collection(db, "services"), {
         name: name,
         phone: phone,
@@ -188,16 +193,18 @@
         category: category,
         lat: lat,
         lng: lng,
+        images: finalImageUrls,
+        user_photos: [],
         createdAt: new Date()
       });
 
-      statusEl.className = "success-text";
-      statusEl.innerText = "✅ Service successfully added to Firebase!";
+      statusEl.style.color = "green";
+      statusEl.innerText = "✅ Service published successfully!";
       document.getElementById('serviceForm').reset();
     } catch (error) {
-      console.error("Firestore Error:", error);
-      statusEl.className = "error-text";
-      statusEl.innerText = "❌ Failed to save data. Please check your connection.";
+      console.error("Error:", error);
+      statusEl.style.color = "red";
+      statusEl.innerText = "❌ Failed to save data: " + error.message;
     } finally {
       submitBtn.innerText = "💾 Save & Publish Entry";
       submitBtn.disabled = false;
