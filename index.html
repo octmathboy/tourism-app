@@ -1,456 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tourism Service Registration Portal</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #f4f6f9;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-    }
-    .card {
-      background: #ffffff;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 480px;
-    }
-    h2 {
-      color: #008080;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    label {
-      font-weight: 600;
-      display: block;
-      margin-top: 12px;
-      margin-bottom: 4px;
-      color: #333;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-    button {
-      background-color: #008080;
-      color: #ffffff;
-      font-weight: bold;
-      border: none;
-      margin-top: 20px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #006666;
-    }
-    .btn-gps {
-      background-color: #2196F3;
-      margin-top: 8px;
-    }
-    .coord-container {
-      display: flex;
-      gap: 10px;
-      margin-top: 8px;
-    }
-    #status {
-      margin-top: 15px;
-      text-align: center;
-      font-weight: bold;
-    }
-    .hint {
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-      display: block;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Tourism Service</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
 
-<div class="card">
-  <h2>Add New Tourism Service</h2>
-  
-  <form id="serviceForm">
-    <label for="category">Category / Target Screen:</label>
-    <select id="category" required>
-      <option value="">-- Select Category --</option>
-      <option value="hotel">🏨 Hotel / Accommodation (Services Screen)</option>
-      <option value="restaurant">🍽️ Restaurant / Cafe (Services Screen)</option>
-      <option value="place">🏛️ Attraction / Landmark (Places Screen)</option>
-      <option value="tour">🗺️ Guided Tour (Tours Screen)</option>
-      <option value="taxi">🚕 Taxi / Transport (Tours Screen)</option>
-      <option value="guide">🧑‍💼 Tour Guide (Tours Screen)</option>
-    </select>
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-teal-700 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">Add New Tourism Service</h1>
+            <p class="text-teal-100 text-sm mt-1">Submit place details and acquire GPS position</p>
+        </div>
 
-    <label for="name">Service / Place Name:</label>
-    <input type="text" id="name" placeholder="e.g. Royal Hotel, National Museum" required>
+        <form id="serviceForm" class="p-6 space-y-5">
+            
+            <!-- Category Selection -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Category / Target Screen:</label>
+                <select id="category" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                    <option value="">-- Select Category --</option>
+                    <option value="taxi">Transport / Taxi</option>
+                    <option value="hotel">Hotels & Lodging</option>
+                    <option value="restaurant">Restaurants & Cafes</option>
+                    <option value="guide">Tour Guides</option>
+                </select>
+            </div>
 
-    <label for="phone">Phone / WhatsApp Number:</label>
-    <input type="tel" id="phone" placeholder="e.g. +213661234567" required>
+            <!-- Service Name -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Service / Place Name:</label>
+                <input type="text" id="name" placeholder="e.g. Royal Hotel, National Museum" required 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
 
-    <label for="address">Short Address / Description:</label>
-    <input type="text" id="address" placeholder="e.g. Main Boulevard, City Center" required>
+            <!-- Phone Number -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Phone / WhatsApp Number:</label>
+                <input type="tel" id="phone" placeholder="e.g. +213661234567" required 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
 
-    <label for="imageFiles">Upload Photos (Max 10 files):</label>
-    <input type="file" id="imageFiles" accept="image/*" multiple required>
-    <span class="hint">Select pictures directly from your device (hotel rooms, menus, views).</span>
+            <!-- Short Address / Description -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Short Address / Description:</label>
+                <textarea id="description" rows="3" placeholder="e.g. Main Boulevard, City Center" required 
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
+            </div>
 
-    <label>GPS Location Coordinates:</label>
-    <button type="button" class="btn-gps" onclick="detectGPS()">📍 Detect Current GPS Location</button>
-    
-    <div class="coord-container">
-      <input type="number" step="any" id="lat" placeholder="Latitude" required readonly>
-      <input type="number" step="any" id="lng" placeholder="Longitude" required readonly>
+            <!-- Photo URLs -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Photo URLs (Comma Separated):</label>
+                <textarea id="images" rows="2" placeholder="https://image1.jpg, https://image2.jpg" 
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
+            </div>
+
+            <!-- GPS Location Detection -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">GPS Location Coordinates:</label>
+                <button type="button" id="gpsBtn" onclick="getLocation()" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                    <span>📍</span>
+                    <span id="gpsStatus">Detect Current GPS Location</span>
+                </button>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submitBtn" 
+                    class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3.5 px-4 rounded-lg shadow-md transition-colors">
+                💾 Save & Publish Entry
+            </button>
+        </form>
     </div>
 
-    <button type="submit" id="submitBtn">💾 Save & Publish Entry</button>
-  </form>
+    <script>
+        // Firebase Configuration (Replace with your actual Firebase project settings)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-  <p id="status"></p>
-</div>
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-<!-- Firebase SDK Modules -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        // Coordinates Storage Variables
+        let currentLat = null;
+        let currentLng = null;
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAMpi80yJqhAeU2DKRdcpJccZn-VM0jTI0",
-    authDomain: "tourism-app-b14df.firebaseapp.com",
-    projectId: "tourism-app-b14df",
-    storageBucket: "tourism-app-b14df.firebasestorage.app",
-    messagingSenderId: "996510101280",
-    appId: "1:996510101280:web:04a6d753c0efd88127f145",
-    measurementId: "G-2HKP1GWET8"
-  };
+        // Fetch Location via Web Geolocation API
+        function getLocation() {
+            const statusSpan = document.getElementById('gpsStatus');
+            const btn = document.getElementById('gpsBtn');
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
 
-  // Replace with your ImgBB free API key
-  const IMGBB_API_KEY = "d61755292cb127fb21f42050d93ac700";
+            statusSpan.innerText = "Detecting position...";
+            btn.classList.remove('bg-blue-600', 'bg-green-600');
+            btn.classList.add('bg-yellow-600');
 
-  window.detectGPS = function() {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          document.getElementById('lat').value = position.coords.latitude;
-          document.getElementById('lng').value = position.coords.longitude;
-          alert("GPS Coordinates captured successfully!");
-        },
-        (error) => alert("Failed to fetch location: " + error.message),
-        { enableHighAccuracy: true }
-      );
-    } else {
-      alert("Geolocation is not supported by your browser.");
-    }
-  };
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    currentLat = position.coords.latitude;
+                    currentLng = position.coords.longitude;
 
-  document.getElementById("serviceForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const statusEl = document.getElementById('status');
-    const submitBtn = document.getElementById('submitBtn');
-    const fileInput = document.getElementById('imageFiles');
-    const files = Array.from(fileInput.files);
-
-    if (files.length === 0) {
-      alert("Please select at least one image file!");
-      return;
-    }
-
-    if (files.length > 10) {
-      alert("You can upload a maximum of 10 photos.");
-      return;
-    }
-
-    const name = document.getElementById('name').value;
-    const phone = document.getElementById('phone').value;
-    const address = document.getElementById('address').value;
-    const category = document.getElementById('category').value;
-    const lat = parseFloat(document.getElementById('lat').value);
-    const lng = parseFloat(document.getElementById('lng').value);
-
-    if (isNaN(lat) || isNaN(lng)) {
-      alert("Please capture GPS location coordinates first!");
-      return;
-    }
-
-    submitBtn.innerText = "Uploading images...";
-    submitBtn.disabled = true;
-
-    try {
-      const uploadedUrls = [];
-
-      // Upload each image file directly to ImgBB
-      for (let file of files) {
-        const formData = new FormData();
-        formData.append("image", file);
-
-        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          uploadedUrls.push(data.data.url);
-        } else {
-          throw new Error("Failed to upload image: " + file.name);
+                    statusSpan.innerText = `Location Acquired! (${currentLat.toFixed(4)}, ${currentLng.toFixed(4)})`;
+                    btn.classList.remove('bg-yellow-600');
+                    btn.classList.add('bg-green-600');
+                },
+                (error) => {
+                    btn.classList.remove('bg-yellow-600');
+                    btn.classList.add('bg-blue-600');
+                    statusSpan.innerText = "Detect Current GPS Location";
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            alert("Please allow location access in your browser to detect GPS position.");
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            alert("Location information is unavailable.");
+                            break;
+                        case error.TIMEOUT:
+                            alert("The request to get user location timed out.");
+                            break;
+                        default:
+                            alert("An unknown error occurred while retrieving location.");
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
         }
-      }
 
-      submitBtn.innerText = "Saving service...";
+        // Form Submission Logic
+        document.getElementById('serviceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-      // Save record to Firestore
-      await addDoc(collection(db, "services"), {
-        name: name,
-        phone: phone,
-        address: address,
-        category: category,
-        lat: lat,
-        lng: lng,
-        images: uploadedUrls,
-        user_photos: [],
-        createdAt: new Date()
-      });
+            if (currentLat === null || currentLng === null) {
+                alert("Please click the 'Detect Current GPS Location' button first!");
+                return;
+            }
 
-      statusEl.style.color = "green";
-      statusEl.innerText = `✅ Service published with ${uploadedUrls.length} photos!`;
-      document.getElementById('serviceForm').reset();
-    } catch (error) {
-      console.error("Error:", error);
-      statusEl.style.color = "red";
-      statusEl.innerText = "❌ Error: " + error.message;
-    } finally {
-      submitBtn.innerText = "💾 Save & Publish Entry";
-      submitBtn.disabled = false;
-    }
-  });
-</script>
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Saving entry...";
 
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tourism Service Registration Portal</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #f4f6f9;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-    }
-    .card {
-      background: #ffffff;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 480px;
-    }
-    h2 {
-      color: #008080;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    label {
-      font-weight: 600;
-      display: block;
-      margin-top: 12px;
-      margin-bottom: 4px;
-      color: #333;
-    }
-    input, select, textarea, button {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-    button {
-      background-color: #008080;
-      color: #ffffff;
-      font-weight: bold;
-      border: none;
-      margin-top: 20px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #006666;
-    }
-    .btn-gps {
-      background-color: #2196F3;
-      margin-top: 8px;
-    }
-    .coord-container {
-      display: flex;
-      gap: 10px;
-      margin-top: 8px;
-    }
-    #status {
-      margin-top: 15px;
-      text-align: center;
-      font-weight: bold;
-    }
-    .hint {
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-      display: block;
-    }
-  </style>
-</head>
-<body>
+            const category = document.getElementById('category').value;
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const description = document.getElementById('description').value;
+            const rawImages = document.getElementById('images').value;
 
-<div class="card">
-  <h2>Add New Tourism Service</h2>
-  
-  <form id="serviceForm">
-    <label for="category">Category / Target Screen:</label>
-    <select id="category" required>
-      <option value="">-- Select Category --</option>
-      <option value="hotel">🏨 Hotel / Accommodation (Services Screen)</option>
-      <option value="restaurant">🍽️ Restaurant / Cafe (Services Screen)</option>
-      <option value="place">🏛️ Attraction / Landmark (Places Screen)</option>
-      <option value="tour">🗺️ Guided Tour (Tours Screen)</option>
-      <option value="taxi">🚕 Taxi / Transport (Tours Screen)</option>
-      <option value="guide">🧑‍💼 Tour Guide (Tours Screen)</option>
-    </select>
+            // Process image URLs into an array
+            const imagesList = rawImages ? rawImages.split(',').map(url => url.trim()).filter(url => url.length > 0) : [];
 
-    <label for="name">Service / Place Name:</label>
-    <input type="text" id="name" placeholder="e.g. Royal Hotel, National Museum" required>
+            try {
+                await db.collection('services').add({
+                    category: category,
+                    name: name,
+                    phone: phone,
+                    address: description,
+                    description: description,
+                    lat: currentLat,
+                    lng: currentLng,
+                    images: imagesList,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-    <label for="phone">Phone / WhatsApp Number:</label>
-    <input type="tel" id="phone" placeholder="e.g. +213661234567" required>
+                alert("Service published successfully! It will now appear on the mobile app.");
+                document.getElementById('serviceForm').reset();
+                
+                // Reset GPS Button State
+                currentLat = null;
+                currentLng = null;
+                const statusSpan = document.getElementById('gpsStatus');
+                const btn = document.getElementById('gpsBtn');
+                statusSpan.innerText = "Detect Current GPS Location";
+                btn.classList.remove('bg-green-600', 'bg-yellow-600');
+                btn.classList.add('bg-blue-600');
 
-    <label for="address">Short Address / Description:</label>
-    <input type="text" id="address" placeholder="e.g. Main Boulevard, City Center" required>
-
-    <label for="imageUrls">Photo URLs (HTTPS):</label>
-    <textarea id="imageUrls" rows="3" placeholder="https://i.ibb.co/xxxx/image1.jpg, https://i.ibb.co/yyyy/image2.jpg" required></textarea>
-    <span class="hint">Upload images for free on <a href="https://imgbb.com/" target="_blank">ImgBB</a> and paste direct links here (separated by commas).</span>
-
-    <label>GPS Location Coordinates:</label>
-    <button type="button" class="btn-gps" onclick="detectGPS()">📍 Detect Current GPS Location</button>
-    
-    <div class="coord-container">
-      <input type="number" step="any" id="lat" placeholder="Latitude" required readonly>
-      <input type="number" step="any" id="lng" placeholder="Longitude" required readonly>
-    </div>
-
-    <button type="submit" id="submitBtn">💾 Save & Publish Entry</button>
-  </form>
-
-  <p id="status"></p>
-</div>
-
-<!-- Firebase SDK Modules -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAMpi80yJqhAeU2DKRdcpJccZn-VM0jTI0",
-    authDomain: "tourism-app-b14df.firebaseapp.com",
-    projectId: "tourism-app-b14df",
-    storageBucket: "tourism-app-b14df.firebasestorage.app",
-    messagingSenderId: "996510101280",
-    appId: "1:996510101280:web:04a6d753c0efd88127f145",
-    measurementId: "G-2HKP1GWET8"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.detectGPS = function() {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          document.getElementById('lat').value = position.coords.latitude;
-          document.getElementById('lng').value = position.coords.longitude;
-          alert("GPS Coordinates captured successfully!");
-        },
-        (error) => alert("Failed to fetch location: " + error.message),
-        { enableHighAccuracy: true }
-      );
-    } else {
-      alert("Geolocation is not supported by your browser.");
-    }
-  };
-
-  document.getElementById("serviceForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const statusEl = document.getElementById('status');
-    const submitBtn = document.getElementById('submitBtn');
-    const rawUrls = document.getElementById('imageUrls').value;
-
-    // Parse and filter image URLs
-    const finalImageUrls = rawUrls
-      .split(',')
-      .map(url => url.trim())
-      .filter(url => url.startsWith('http://') || url.startsWith('https://'));
-
-    if (finalImageUrls.length === 0) {
-      alert("Please provide at least one valid image URL starting with https://");
-      return;
-    }
-
-    const name = document.getElementById('name').value;
-    const phone = document.getElementById('phone').value;
-    const address = document.getElementById('address').value;
-    const category = document.getElementById('category').value;
-    const lat = parseFloat(document.getElementById('lat').value);
-    const lng = parseFloat(document.getElementById('lng').value);
-
-    if (isNaN(lat) || isNaN(lng)) {
-      alert("Please capture GPS location coordinates first!");
-      return;
-    }
-
-    submitBtn.innerText = "Saving...";
-    submitBtn.disabled = true;
-
-    try {
-      // Save directly into Firestore
-      await addDoc(collection(db, "services"), {
-        name: name,
-        phone: phone,
-        address: address,
-        category: category,
-        lat: lat,
-        lng: lng,
-        images: finalImageUrls,
-        user_photos: [],
-        createdAt: new Date()
-      });
-
-      statusEl.style.color = "green";
-      statusEl.innerText = "✅ Service published successfully!";
-      document.getElementById('serviceForm').reset();
-    } catch (error) {
-      console.error("Error:", error);
-      statusEl.style.color = "red";
-      statusEl.innerText = "❌ Failed to save data: " + error.message;
-    } finally {
-      submitBtn.innerText = "💾 Save & Publish Entry";
-      submitBtn.disabled = false;
-    }
-  });
-</script>
-
+            } catch (err) {
+                console.error("Error adding document: ", err);
+                alert("Error saving service: " + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "💾 Save & Publish Entry";
+            }
+        });
+    </script>
 </body>
 </html>
