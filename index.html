@@ -1,101 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Tourism Service</title>
+    <title>Add Tourism Service</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS & JS for Interactive Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <style>
-        #map { height: 260px; width: 100%; border-radius: 0.5rem; z-index: 1; }
+        #map { height: 260px; width: 100%; border-radius: 0.75rem; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-3 sm:p-6">
 
-    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div class="bg-teal-700 p-6 text-white text-center">
-            <h1 class="text-2xl font-bold">Add New Tourism Service</h1>
-            <p class="text-teal-100 text-sm mt-1">Submit business details and pick exact location on map</p>
+    <div class="w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+        
+        <!-- Mobile Header -->
+        <div class="bg-emerald-600 p-6 text-white text-center shadow-sm">
+            <span class="inline-block bg-emerald-500 text-emerald-100 text-xs px-3 py-1 rounded-full font-medium mb-2">Partner Portal</span>
+            <h1 class="text-2xl font-extrabold tracking-tight">Add New Service</h1>
+            <p class="text-emerald-100 text-xs mt-1">Pin your business location & submit info</p>
         </div>
 
-        <form id="serviceForm" class="p-6 space-y-5">
+        <form id="serviceForm" class="p-5 sm:p-7 space-y-4">
             
-            <!-- Category Selection -->
+            <!-- Category -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Category / Target Screen:</label>
-                <select id="category" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                    <option value="">-- Select Category --</option>
-                    <option value="taxi">Transport / Taxi</option>
-                    <option value="hotel">Hotels & Lodging</option>
-                    <option value="restaurant">Restaurants & Cafes</option>
-                    <option value="guide">Tour Guides</option>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Category</label>
+                <select id="category" required 
+                        class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+                    <option value="">-- Select Service Type --</option>
+                    <option value="hotel">🏨 Hotel & Lodging</option>
+                    <option value="restaurant">🍽️ Restaurant & Cafe</option>
+                    <option value="taxi">🚖 Transport / Taxi</option>
+                    <option value="guide">🗺️ Tour Guide</option>
+                    <option value="place">📍 Landmark / Attraction</option>
                 </select>
             </div>
 
-            <!-- Service Name -->
+            <!-- Service / Business Name -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Service / Place Name:</label>
-                <input type="text" id="name" placeholder="e.g. Royal Hotel, National Museum" required 
-                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Business / Service Name</label>
+                <input type="text" id="name" placeholder="e.g. Grand Palace Hotel" required 
+                       class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
             </div>
 
-            <!-- Phone Number -->
+            <!-- Phone / WhatsApp -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Phone / WhatsApp Number:</label>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Phone / WhatsApp</label>
                 <input type="tel" id="phone" placeholder="e.g. +213661234567" required 
-                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                       class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
             </div>
 
-            <!-- Short Address / Description -->
+            <!-- Description / Address -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Short Address / Description:</label>
-                <textarea id="description" rows="3" placeholder="e.g. Main Boulevard, City Center" required 
-                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Short Description / Address</label>
+                <textarea id="description" rows="2" placeholder="e.g. Near main boulevard, seaside view..." required 
+                          class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"></textarea>
             </div>
 
-            <!-- Photo URLs -->
+            <!-- Images (Comma Separated) -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Photo URLs (Comma Separated):</label>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Image URLs (Comma-Separated)</label>
                 <textarea id="images" rows="2" placeholder="https://image1.jpg, https://image2.jpg" 
-                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
+                          class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"></textarea>
             </div>
 
-            <!-- Interactive Map Location Picker -->
-            <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label class="block text-sm font-semibold text-gray-700">Select Hotel / Business Location on Map:</label>
-                    <button type="button" onclick="locateUserDevice()" class="text-xs text-blue-600 hover:underline font-semibold">
-                        📍 Center on My Location
+            <!-- Google Map Picker Section -->
+            <div class="pt-2">
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Set Exact Location</label>
+                    <button type="button" onclick="centerToDevice()" class="text-xs text-emerald-600 font-semibold hover:underline">
+                        📍 Use Mobile GPS
                     </button>
                 </div>
-                <p class="text-xs text-gray-500 mb-2">Click anywhere on the map or drag the red marker to set the exact spot of your business.</p>
-                
-                <!-- Map Container -->
-                <div id="map"></div>
 
-                <!-- Display Selected Coordinates -->
-                <div class="mt-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-200 flex justify-between">
-                    <span><strong>Latitude:</strong> <span id="latDisplay">Click map to set</span></span>
-                    <span><strong>Longitude:</strong> <span id="lngDisplay">Click map to set</span></span>
+                <!-- Google Places Search Bar -->
+                <input id="pac-input" type="text" placeholder="Search street, area, or landmark..." 
+                       class="w-full text-xs p-2.5 mb-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+
+                <!-- Interactive Google Map -->
+                <div id="map" class="shadow-inner border border-gray-200"></div>
+
+                <!-- Live Coordinate Badges -->
+                <div class="mt-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded-lg border border-gray-200 flex justify-between">
+                    <span><strong>Lat:</strong> <span id="latDisplay">Select on map</span></span>
+                    <span><strong>Lng:</strong> <span id="lngDisplay">Select on map</span></span>
                 </div>
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" id="submitBtn" 
-                    class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3.5 px-4 rounded-lg shadow-md transition-colors">
-                💾 Save & Publish Entry
-            </button>
+            <div class="pt-3">
+                <button type="submit" id="submitBtn" 
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
+                    💾 Publish Service
+                </button>
+            </div>
         </form>
     </div>
 
     <script>
-        // Firebase Configuration (Replace with your actual Firebase project settings)
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -105,74 +112,100 @@
             appId: "YOUR_APP_ID"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Coordinates Storage
         let selectedLat = null;
         let selectedLng = null;
+        let map, marker, searchBox;
 
-        // Initialize Leaflet Map (Default view: Algeria / North Africa)
-        const map = L.map('map').setView([35.6971, -0.6308], 12);
+        // Initialize Google Maps
+        function initMap() {
+            const defaultPos = { lat: 35.6980, lng: -0.6330 }; // Initial Center
 
-        // Add OpenStreetMap Tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 14,
+                center: defaultPos,
+                disableDefaultUI: false,
+                zoomControl: true,
+            });
 
-        // Marker for Business Location
-        let marker = null;
+            marker = new google.maps.Marker({
+                position: defaultPos,
+                map: map,
+                draggable: true,
+                animation: google.maps.Animation.DROP
+            });
 
-        function setCoordinates(lat, lng) {
+            updateCoords(defaultPos.lat, defaultPos.lng);
+
+            // Drag end listener
+            google.maps.event.addListener(marker, 'dragend', function (event) {
+                updateCoords(event.latLng.lat(), event.latLng.lng());
+            });
+
+            // Tap on map listener
+            map.addListener('click', function (event) {
+                marker.setPosition(event.latLng);
+                updateCoords(event.latLng.lat(), event.latLng.lng());
+            });
+
+            // Google Places Search Setup
+            const input = document.getElementById("pac-input");
+            searchBox = new google.maps.places.SearchBox(input);
+
+            map.addListener("bounds_changed", () => {
+                searchBox.setBounds(map.getBounds());
+            });
+
+            searchBox.addListener("places_changed", () => {
+                const places = searchBox.getPlaces();
+                if (places.length === 0) return;
+
+                const place = places[0];
+                if (!place.geometry || !place.geometry.location) return;
+
+                map.setCenter(place.geometry.location);
+                map.setZoom(16);
+                marker.setPosition(place.geometry.location);
+                updateCoords(place.geometry.location.lat(), place.geometry.location.lng());
+            });
+        }
+
+        function updateCoords(lat, lng) {
             selectedLat = lat;
             selectedLng = lng;
             document.getElementById('latDisplay').innerText = lat.toFixed(6);
             document.getElementById('lngDisplay').innerText = lng.toFixed(6);
-
-            if (!marker) {
-                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-                marker.on('dragend', function (event) {
-                    const position = marker.getLatLng();
-                    setCoordinates(position.lat, position.lng);
-                });
-            } else {
-                marker.setLatLng([lat, lng]);
-            }
         }
 
-        // Click on map to drop pin
-        map.on('click', function (e) {
-            setCoordinates(e.latlng.lat, e.latlng.lng);
-        });
-
-        // Optional: Center map on current device location
-        function locateUserDevice() {
+        // Center to user GPS location if requested
+        function centerToDevice() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    map.setView([lat, lng], 15);
-                    setCoordinates(lat, lng);
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    map.setCenter(coords);
+                    map.setZoom(16);
+                    marker.setPosition(coords);
+                    updateCoords(coords.lat, coords.lng);
                 }, () => {
-                    alert("Could not access device location. Please move the map manually.");
+                    alert("Could not pull current GPS position.");
                 });
             }
         }
 
-        // Form Submission Logic
+        // Form Submit Handler
         document.getElementById('serviceForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             if (selectedLat === null || selectedLng === null) {
-                alert("Please click on the map to set the location of your business!");
+                alert("Please select a valid spot on the Google Map!");
                 return;
             }
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "Saving entry...";
+            submitBtn.innerText = "Publishing...";
 
             const category = document.getElementById('category').value;
             const name = document.getElementById('name').value;
@@ -195,27 +228,19 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert("Service published successfully! It will now appear on the mobile app.");
+                alert("Entry created successfully!");
                 document.getElementById('serviceForm').reset();
-                
-                // Reset map marker
-                if (marker) {
-                    map.removeLayer(marker);
-                    marker = null;
-                }
-                selectedLat = null;
-                selectedLng = null;
-                document.getElementById('latDisplay').innerText = "Click map to set";
-                document.getElementById('lngDisplay').innerText = "Click map to set";
-
             } catch (err) {
-                console.error("Error adding document: ", err);
-                alert("Error saving service: " + err.message);
+                console.error(err);
+                alert("Error: " + err.message);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "💾 Save & Publish Entry";
+                submitBtn.innerText = "💾 Publish Service";
             }
         });
     </script>
+
+    <!-- Google Maps API Script -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap" async defer></script>
 </body>
 </html>
