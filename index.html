@@ -13,7 +13,7 @@
         #map { height: 260px; width: 100%; border-radius: 0.75rem; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-3 sm:p-6">
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-3 sm:p-6 font-sans">
 
     <div class="w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
         
@@ -21,17 +21,17 @@
         <div class="bg-emerald-600 p-6 text-white text-center shadow-sm">
             <span class="inline-block bg-emerald-500 text-emerald-100 text-xs px-3 py-1 rounded-full font-medium mb-2">Partner Portal</span>
             <h1 class="text-2xl font-extrabold tracking-tight">Add New Service</h1>
-            <p class="text-emerald-100 text-xs mt-1">Pin your business location & submit info</p>
+            <p class="text-emerald-100 text-xs mt-1">Pin your business on Google Maps & submit details</p>
         </div>
 
         <form id="serviceForm" class="p-5 sm:p-7 space-y-4">
             
             <!-- Category -->
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Category</label>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Category / Service Type</label>
                 <select id="category" required 
                         class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
-                    <option value="">-- Select Service Type --</option>
+                    <option value="">-- Select Category --</option>
                     <option value="hotel">🏨 Hotel & Lodging</option>
                     <option value="restaurant">🍽️ Restaurant & Cafe</option>
                     <option value="taxi">🚖 Transport / Taxi</option>
@@ -40,16 +40,16 @@
                 </select>
             </div>
 
-            <!-- Service / Business Name -->
+            <!-- Business Name -->
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Business / Service Name</label>
                 <input type="text" id="name" placeholder="e.g. Grand Palace Hotel" required 
                        class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
             </div>
 
-            <!-- Phone / WhatsApp -->
+            <!-- Phone Number -->
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Phone / WhatsApp</label>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Phone / WhatsApp Number</label>
                 <input type="tel" id="phone" placeholder="e.g. +213661234567" required 
                        class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
             </div>
@@ -61,33 +61,36 @@
                           class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"></textarea>
             </div>
 
-            <!-- Images (Comma Separated) -->
+            <!-- Select Images from Gallery -->
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Image URLs (Comma-Separated)</label>
-                <textarea id="images" rows="2" placeholder="https://image1.jpg, https://image2.jpg" 
-                          class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"></textarea>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Select Photos from Phone Gallery</label>
+                <input type="file" id="imageInput" accept="image/*" multiple 
+                       class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-gray-200 p-1.5 rounded-xl">
+                
+                <!-- Image Preview Area -->
+                <div id="imagePreview" class="flex flex-wrap gap-2 mt-3"></div>
             </div>
 
-            <!-- Google Map Picker Section -->
+            <!-- Interactive Google Map Location Picker -->
             <div class="pt-2">
                 <div class="flex justify-between items-center mb-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Set Exact Location</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Set Location on Google Maps</label>
                     <button type="button" onclick="centerToDevice()" class="text-xs text-emerald-600 font-semibold hover:underline">
-                        📍 Use Mobile GPS
+                        📍 My Current GPS Location
                     </button>
                 </div>
 
-                <!-- Google Places Search Bar -->
-                <input id="pac-input" type="text" placeholder="Search street, area, or landmark..." 
+                <!-- Google Places Search Box -->
+                <input id="pac-input" type="text" placeholder="Search street, area, or city name..." 
                        class="w-full text-xs p-2.5 mb-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
 
-                <!-- Interactive Google Map -->
+                <!-- Map Container -->
                 <div id="map" class="shadow-inner border border-gray-200"></div>
 
-                <!-- Live Coordinate Badges -->
+                <!-- Display Selected Coordinates -->
                 <div class="mt-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded-lg border border-gray-200 flex justify-between">
-                    <span><strong>Lat:</strong> <span id="latDisplay">Select on map</span></span>
-                    <span><strong>Lng:</strong> <span id="lngDisplay">Select on map</span></span>
+                    <span><strong>Latitude:</strong> <span id="latDisplay">Click map to set</span></span>
+                    <span><strong>Longitude:</strong> <span id="lngDisplay">Click map to set</span></span>
                 </div>
             </div>
 
@@ -95,22 +98,21 @@
             <div class="pt-3">
                 <button type="submit" id="submitBtn" 
                         class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
-                    💾 Publish Service
+                    💾 Save & Publish Service
                 </button>
             </div>
         </form>
     </div>
 
     <script>
-        // Firebase Configuration
+        // Firebase Configuration (Replace with your actual keys from Firebase Console)
         const firebaseConfig = {
-            apiKey: "AIzaSyAMpi80yJqhAeU2DKRdcpJccZn-VM0jTI0",
-            authDomain: "tourism-app-b14df.firebaseapp.com",
-            projectId: "tourism-app-b14df",
-            storageBucket: "tourism-app-b14df.firebasestorage.app",
-            messagingSenderId: "996510101280",
-            appId: "1:996510101280:web:04a6d753c0efd88127f145",
-            measurementId: "G-2HKP1GWET8"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -119,10 +121,11 @@
         let selectedLat = null;
         let selectedLng = null;
         let map, marker, searchBox;
+        let uploadedImageUrls = [];
 
-        // Initialize Google Maps
+        // 1. Initialize Google Maps
         function initMap() {
-            const defaultPos = { lat: 35.6980, lng: -0.6330 }; // Initial Center
+            const defaultPos = { lat: 35.6980, lng: -0.6330 }; // Default initial view
 
             map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 14,
@@ -140,18 +143,18 @@
 
             updateCoords(defaultPos.lat, defaultPos.lng);
 
-            // Drag end listener
+            // Update on marker drag end
             google.maps.event.addListener(marker, 'dragend', function (event) {
                 updateCoords(event.latLng.lat(), event.latLng.lng());
             });
 
-            // Tap on map listener
+            // Update on map click
             map.addListener('click', function (event) {
                 marker.setPosition(event.latLng);
                 updateCoords(event.latLng.lat(), event.latLng.lng());
             });
 
-            // Google Places Search Setup
+            // Setup Google Places Search Box
             const input = document.getElementById("pac-input");
             searchBox = new google.maps.places.SearchBox(input);
 
@@ -180,7 +183,7 @@
             document.getElementById('lngDisplay').innerText = lng.toFixed(6);
         }
 
-        // Center to user GPS location if requested
+        // 2. Center to device current GPS location
         function centerToDevice() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
@@ -190,31 +193,63 @@
                     marker.setPosition(coords);
                     updateCoords(coords.lat, coords.lng);
                 }, () => {
-                    alert("Could not pull current GPS position.");
+                    alert("Could not access your device's current GPS location.");
                 });
             }
         }
 
-        // Form Submit Handler
+        // 3. Upload gallery images automatically
+        document.getElementById('imageInput').addEventListener('change', async (e) => {
+            const files = e.target.files;
+            const previewContainer = document.getElementById('imagePreview');
+            previewContainer.innerHTML = '';
+            uploadedImageUrls = [];
+
+            for (let file of files) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.className = "w-14 h-14 object-cover rounded-lg border border-gray-200 opacity-50 transition-opacity";
+                previewContainer.appendChild(img);
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                try {
+                    const res = await fetch('https://api.imgur.com/3/image', {
+                        method: 'POST',
+                        headers: {
+                            Authorization: 'Client-ID 546c25a59c58ad7'
+                        },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        uploadedImageUrls.push(data.data.link);
+                        img.classList.remove('opacity-50');
+                    }
+                } catch (err) {
+                    console.error("Error uploading image:", err);
+                }
+            }
+        });
+
+        // 4. Save data to Firebase Firestore
         document.getElementById('serviceForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             if (selectedLat === null || selectedLng === null) {
-                alert("Please select a valid spot on the Google Map!");
+                alert("Please select your business location on the map first!");
                 return;
             }
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "Publishing...";
+            submitBtn.innerText = "Saving & Publishing...";
 
             const category = document.getElementById('category').value;
             const name = document.getElementById('name').value;
             const phone = document.getElementById('phone').value;
             const description = document.getElementById('description').value;
-            const rawImages = document.getElementById('images').value;
-
-            const imagesList = rawImages ? rawImages.split(',').map(url => url.trim()).filter(url => url.length > 0) : [];
 
             try {
                 await db.collection('services').add({
@@ -225,23 +260,25 @@
                     description: description,
                     lat: selectedLat,
                     lng: selectedLng,
-                    images: imagesList,
+                    images: uploadedImageUrls,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert("Entry created successfully!");
+                alert("Service published successfully!");
                 document.getElementById('serviceForm').reset();
+                document.getElementById('imagePreview').innerHTML = '';
+                uploadedImageUrls = [];
             } catch (err) {
                 console.error(err);
-                alert("Error: " + err.message);
+                alert("Error saving service: " + err.message);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "💾 Publish Service";
+                submitBtn.innerText = "💾 Save & Publish Service";
             }
         });
     </script>
 
-    <!-- Google Maps API Script -->
+    <!-- Google Maps API Script (Replace YOUR_GOOGLE_MAPS_API_KEY with your key) -->
     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap" async defer></script>
 </body>
 </html>
