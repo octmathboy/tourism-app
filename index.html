@@ -3,105 +3,410 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Tourism Service</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Add Tourism Service — Partner Portal</title>
+
+    <!-- Fonts: Fraunces (display) + Inter (body/UI) + IBM Plex Mono (labels/data) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <!-- Leaflet OpenStreetMap CSS & JS (100% Free - No Key Required) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
-        #map { height: 260px; width: 100%; border-radius: 0.75rem; z-index: 1; }
+        :root{
+            --ink:#17323a;
+            --sea-deep:#0e4a52;
+            --sea:#146873;
+            --sand:#e9dfc6;
+            --sand-light:#f6f1e4;
+            --card:#fffdf8;
+            --gold:#c69a3e;
+            --coral:#bf4f34;
+            --line:#dcd0b2;
+        }
+
+        *{box-sizing:border-box;}
+
+        body{
+            margin:0;
+            background:
+                radial-gradient(circle at 15% 8%, rgba(20,104,115,0.06), transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(191,79,52,0.05), transparent 40%),
+                var(--sand);
+            font-family:'Inter', ui-sans-serif, system-ui, sans-serif;
+            color:var(--ink);
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:24px 14px;
+        }
+
+        .font-display{ font-family:'Fraunces', serif; }
+        .font-mono{ font-family:'IBM Plex Mono', ui-monospace, monospace; }
+
+        .card{
+            width:100%;
+            max-width:30rem;
+            background:var(--card);
+            border-radius:22px;
+            overflow:hidden;
+            box-shadow: 0 1px 2px rgba(23,50,58,0.06), 0 24px 48px -20px rgba(23,50,58,0.35);
+            border:1px solid var(--line);
+        }
+
+        /* ---- Header ---- */
+        .hero{
+            background: linear-gradient(155deg, var(--sea-deep), var(--sea) 70%);
+            color:#f4ede0;
+            padding:30px 28px 22px;
+            position:relative;
+        }
+        .eyebrow{
+            display:inline-flex;
+            align-items:center;
+            gap:7px;
+            font-family:'IBM Plex Mono', monospace;
+            font-size:10.5px;
+            letter-spacing:.14em;
+            text-transform:uppercase;
+            color:#d9c896;
+            margin-bottom:12px;
+        }
+        .eyebrow::before{
+            content:"";
+            width:6px; height:6px;
+            background:var(--gold);
+            border-radius:1px;
+            transform:rotate(45deg);
+            display:inline-block;
+        }
+        .hero h1{
+            margin:0 0 8px;
+            font-size:1.85rem;
+            font-weight:600;
+            line-height:1.12;
+            letter-spacing:-0.01em;
+        }
+        .hero p{
+            margin:0;
+            font-size:13px;
+            line-height:1.5;
+            color:#cfe2e2;
+            max-width:34ch;
+        }
+
+        /* Signature element: zellige-inspired tessellation strip */
+        .tile-strip{
+            height:12px;
+            width:100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' viewBox='0 0 24 12'%3E%3Cg fill='none' stroke='%23c69a3e' stroke-width='1' opacity='0.9'%3E%3Cpath d='M0 6 L6 0 L12 6 L6 12 Z'/%3E%3Cpath d='M12 6 L18 0 L24 6 L18 12 Z'/%3E%3C/g%3E%3C/svg%3E");
+            background-repeat:repeat-x;
+            background-size:24px 12px;
+            background-color:var(--sea-deep);
+        }
+
+        /* ---- Form body ---- */
+        form{ padding:26px 26px 28px; }
+
+        .section{ margin-bottom:22px; }
+        .section:last-of-type{ margin-bottom:0; }
+
+        .section-label{
+            display:flex;
+            align-items:baseline;
+            gap:9px;
+            margin-bottom:10px;
+        }
+        .section-num{
+            font-family:'IBM Plex Mono', monospace;
+            font-size:10.5px;
+            color:var(--gold);
+            font-weight:600;
+            letter-spacing:.05em;
+        }
+        .section-title{
+            font-size:11px;
+            font-weight:700;
+            letter-spacing:.09em;
+            text-transform:uppercase;
+            color:var(--ink);
+            opacity:.85;
+        }
+
+        label.field-label{
+            display:block;
+            font-size:11.5px;
+            font-weight:600;
+            color:#5b6d6d;
+            margin-bottom:6px;
+        }
+
+        .field{
+            width:100%;
+            font-size:14.5px;
+            padding:12px 14px;
+            background:var(--sand-light);
+            border:1.5px solid var(--line);
+            border-radius:12px;
+            color:var(--ink);
+            transition:border-color .15s, background .15s, box-shadow .15s;
+            font-family:'Inter', sans-serif;
+        }
+        .field::placeholder{ color:#9aa39a; }
+        .field:focus{
+            outline:none;
+            background:#fff;
+            border-color:var(--sea);
+            box-shadow:0 0 0 3px rgba(20,104,115,0.14);
+        }
+
+        select.field{
+            appearance:none;
+            -webkit-appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1L7 7L13 1' stroke='%23146873' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;
+            background-position:right 14px center;
+            padding-right:38px;
+            cursor:pointer;
+        }
+
+        .stack > * + *{ margin-top:12px; }
+
+        /* File input */
+        .file-drop{
+            border:1.5px dashed var(--line);
+            border-radius:12px;
+            background:var(--sand-light);
+            padding:16px;
+            text-align:center;
+            transition:border-color .15s, background .15s;
+        }
+        .file-drop:hover{ border-color:var(--sea); background:#fff; }
+        .file-drop input[type="file"]{
+            font-size:12px;
+            color:#5b6d6d;
+            width:100%;
+        }
+        .file-drop input[type="file"]::file-selector-button{
+            margin-right:12px;
+            padding:9px 14px;
+            border:none;
+            border-radius:10px;
+            background:var(--sea);
+            color:#fff;
+            font-size:12px;
+            font-weight:600;
+            cursor:pointer;
+            transition:background .15s;
+        }
+        .file-drop input[type="file"]::file-selector-button:hover{ background:var(--sea-deep); }
+
+        #imagePreview{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            margin-top:12px;
+        }
+        #imagePreview img{
+            width:56px; height:56px;
+            object-fit:cover;
+            border-radius:10px;
+            border:1.5px solid var(--line);
+            opacity:.45;
+            transition:opacity .25s;
+        }
+
+        /* Map */
+        .gps-btn{
+            font-family:'IBM Plex Mono', monospace;
+            font-size:10.5px;
+            font-weight:600;
+            letter-spacing:.02em;
+            color:var(--sea);
+            background:none;
+            border:none;
+            cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            padding:0;
+        }
+        .gps-btn:hover{ color:var(--sea-deep); text-decoration:underline; }
+
+        #map{
+            height:230px;
+            width:100%;
+            border-radius:14px;
+            border:1.5px solid var(--line);
+            z-index:1;
+            margin-top:2px;
+        }
+
+        .coords-chip{
+            margin-top:10px;
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            background:var(--sand-light);
+            border:1px solid var(--line);
+            border-radius:10px;
+            padding:9px 13px;
+            font-family:'IBM Plex Mono', monospace;
+            font-size:10.5px;
+            color:#5b6d6d;
+        }
+        .coords-chip b{ color:var(--ink); font-weight:600; }
+        .coords-chip span span{ color:var(--sea-deep); font-weight:600; }
+
+        /* Submit */
+        .submit-btn{
+            width:100%;
+            padding:15px 18px;
+            border:none;
+            border-radius:13px;
+            background:linear-gradient(135deg, var(--sea), var(--sea-deep));
+            color:#fefbf3;
+            font-family:'Inter', sans-serif;
+            font-size:14.5px;
+            font-weight:700;
+            letter-spacing:.01em;
+            cursor:pointer;
+            box-shadow:0 12px 24px -10px rgba(14,74,82,0.55);
+            transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+        }
+        .submit-btn:hover{ box-shadow:0 14px 28px -10px rgba(14,74,82,0.65); }
+        .submit-btn:active{ transform:scale(0.98); }
+        .submit-btn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
+
+        .submit-row{ margin-top:24px; padding-top:20px; border-top:1px solid var(--line); }
+
+        /* Toast (replaces native alerts) */
+        #toast-host{
+            position:fixed;
+            bottom:20px; left:50%;
+            transform:translateX(-50%);
+            z-index:9999;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+            width:calc(100% - 32px);
+            max-width:28rem;
+            pointer-events:none;
+        }
+        .toast{
+            font-size:13px;
+            font-weight:500;
+            padding:12px 16px;
+            border-radius:12px;
+            box-shadow:0 10px 30px -8px rgba(23,50,58,0.35);
+            color:#fff;
+            opacity:0;
+            transform:translateY(8px);
+            animation: toast-in .25s ease forwards, toast-out .25s ease forwards 3.4s;
+        }
+        .toast.ok{ background:var(--sea-deep); }
+        .toast.warn{ background:var(--coral); }
+        @keyframes toast-in{ to{ opacity:1; transform:translateY(0); } }
+        @keyframes toast-out{ to{ opacity:0; transform:translateY(8px); } }
+
+        @media (prefers-reduced-motion: reduce){
+            .toast{ animation:none; opacity:1; }
+            .submit-btn:active{ transform:none; }
+        }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-3 sm:p-6 font-sans">
+<body>
 
-    <div class="w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-        
-        <!-- Mobile Header -->
-        <div class="bg-emerald-600 p-6 text-white text-center shadow-sm">
-            <span class="inline-block bg-emerald-500 text-emerald-100 text-xs px-3 py-1 rounded-full font-medium mb-2">Partner Portal</span>
-            <h1 class="text-2xl font-extrabold tracking-tight">Add New Service</h1>
-            <p class="text-emerald-100 text-xs mt-1">Pin your business location & submit details</p>
+    <div class="card">
+
+        <div class="hero">
+            <span class="eyebrow">Partner Portal</span>
+            <h1 class="font-display">List your service</h1>
+            <p>Pin your spot on the map, add a few photos, and go live for travelers exploring Oran and beyond.</p>
         </div>
+        <div class="tile-strip" aria-hidden="true"></div>
 
-        <form id="serviceForm" class="p-5 sm:p-7 space-y-4">
-            
+        <form id="serviceForm">
+
             <!-- Category -->
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Category / Service Type</label>
-                <select id="category" required 
-                        class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
-                    <option value="">-- Select Category --</option>
-                    <option value="hotel">🏨 Hotel & Lodging</option>
-                    <option value="restaurant">🍽️ Restaurant & Cafe</option>
-                    <option value="taxi">🚖 Transport / Taxi</option>
-                    <option value="guide">🗺️ Tour Guide</option>
-                    <option value="place">📍 Landmark / Attraction</option>
+            <div class="section">
+                <div class="section-label">
+                    <span class="section-num">01</span>
+                    <span class="section-title">Category</span>
+                </div>
+                <select id="category" required class="field">
+                    <option value="">Choose a service type</option>
+                    <option value="islamic_worship">🕌 Islamic worship (mosque)</option>
+                    <option value="christian_worship">⛪ Christian worship (church)</option>
+                    <option value="hotel">🏨 Hotel &amp; lodging</option>
+                    <option value="restaurant">🍽️ Restaurant &amp; cafe</option>
+                    <option value="taxi">🚖 Transport / taxi</option>
+                    <option value="guide">🗺️ Tour guide</option>
+                    <option value="place">📍 Landmark / attraction</option>
                 </select>
             </div>
 
-            <!-- Business Name -->
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Business / Service Name</label>
-                <input type="text" id="name" placeholder="e.g. Grand Palace Hotel" required 
-                       class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
-            </div>
-
-            <!-- Phone Number -->
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Phone / WhatsApp Number</label>
-                <input type="tel" id="phone" placeholder="e.g. +213661234567" required 
-                       class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
-            </div>
-
-            <!-- Description / Address -->
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Short Description / Address</label>
-                <textarea id="description" rows="2" placeholder="e.g. Near main boulevard, seaside view..." required 
-                          class="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"></textarea>
-            </div>
-
-            <!-- Select Images from Gallery -->
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Select Photos from Phone Gallery</label>
-                <input type="file" id="imageInput" accept="image/*" multiple 
-                       class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-gray-200 p-1.5 rounded-xl">
-                
-                <!-- Image Preview Area -->
-                <div id="imagePreview" class="flex flex-wrap gap-2 mt-3"></div>
-            </div>
-
-            <!-- Free Interactive Map Location Picker -->
-            <div class="pt-2">
-                <div class="flex justify-between items-center mb-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Set Location on Map</label>
-                    <button type="button" onclick="centerToDevice()" class="text-xs text-emerald-600 font-semibold hover:underline">
-                        📍 My Current GPS Location
-                    </button>
+            <!-- Details -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="section-num">02</span>
+                    <span class="section-title">Details</span>
                 </div>
-
-                <!-- Leaflet Map Container -->
-                <div id="map" class="shadow-inner border border-gray-200"></div>
-
-                <!-- Display Selected Coordinates -->
-                <div class="mt-2 text-[11px] text-gray-500 bg-gray-50 p-2 rounded-lg border border-gray-200 flex justify-between">
-                    <span><strong>Latitude:</strong> <span id="latDisplay">Click map to set</span></span>
-                    <span><strong>Longitude:</strong> <span id="lngDisplay">Click map to set</span></span>
+                <div class="stack">
+                    <div>
+                        <label class="field-label" for="name">Business or service name</label>
+                        <input type="text" id="name" placeholder="Al-Rahman Mosque, Grand Palace Hotel…" required class="field">
+                    </div>
+                    <div>
+                        <label class="field-label" for="phone">Phone / WhatsApp number</label>
+                        <input type="tel" id="phone" placeholder="+213 661 234 567" required class="field">
+                    </div>
                 </div>
             </div>
 
-            <!-- Submit Button -->
-            <div class="pt-3">
-                <button type="submit" id="submitBtn" 
-                        class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
-                    💾 Save & Publish Service
-                </button>
+            <!-- Photos -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="section-num">03</span>
+                    <span class="section-title">Photos</span>
+                </div>
+                <div class="file-drop">
+                    <input type="file" id="imageInput" accept="image/*" multiple>
+                </div>
+                <div id="imagePreview"></div>
+            </div>
+
+            <!-- Location -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="section-num">04</span>
+                    <span class="section-title">Location</span>
+                </div>
+                <div class="flex items-center justify-between" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <label class="field-label" style="margin-bottom:0;">Tap the map to set the pin</label>
+                    <button type="button" class="gps-btn" onclick="centerToDevice()">📍 Use my GPS</button>
+                </div>
+                <div id="map"></div>
+                <div class="coords-chip">
+                    <span><b>Lat</b> <span id="latDisplay">—</span></span>
+                    <span><b>Lng</b> <span id="lngDisplay">—</span></span>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="submit-row">
+                <button type="submit" id="submitBtn" class="submit-btn">Publish service</button>
             </div>
         </form>
     </div>
+
+    <div id="toast-host"></div>
 
     <script>
         // Firebase Configuration
@@ -122,27 +427,33 @@
         let map, marker;
         let uploadedImageUrls = [];
 
-        // 1. Initialize Leaflet Map (OpenStreetMap)
-        function initMap() {
-            const defaultPos = [35.6980, -0.6330]; // Default location coordinates
+        // Toast helper — replaces native alert() with an in-page notice
+        function toast(message, kind = 'ok') {
+            const host = document.getElementById('toast-host');
+            const el = document.createElement('div');
+            el.className = `toast ${kind}`;
+            el.textContent = message;
+            host.appendChild(el);
+            setTimeout(() => el.remove(), 3800);
+        }
 
-            map = L.map('map').setView(defaultPos, 14);
+        // 1. Initialize Leaflet Map (OpenStreetMap) directly
+        function initMap() {
+            map = L.map('map').setView([35.6980, -0.6330], 14);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
-            marker = L.marker(defaultPos, { draggable: true }).addTo(map);
+            marker = L.marker([35.6980, -0.6330], { draggable: true }).addTo(map);
 
-            updateCoords(defaultPos[0], defaultPos[1]);
+            updateCoords(35.6980, -0.6330);
 
-            // Listen for marker drag end
             marker.on('dragend', function (e) {
                 const coord = e.target.getLatLng();
                 updateCoords(coord.lat, coord.lng);
             });
 
-            // Listen for map click
             map.on('click', function (e) {
                 marker.setLatLng(e.latlng);
                 updateCoords(e.latlng.lat, e.latlng.lng);
@@ -166,7 +477,7 @@
                     marker.setLatLng([lat, lng]);
                     updateCoords(lat, lng);
                 }, () => {
-                    alert("Could not access your device's current GPS location.");
+                    toast("Could not access your device's GPS location.", 'warn');
                 });
             }
         }
@@ -181,7 +492,6 @@
             for (let file of files) {
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(file);
-                img.className = "w-14 h-14 object-cover rounded-lg border border-gray-200 opacity-50 transition-opacity";
                 previewContainer.appendChild(img);
 
                 const formData = new FormData();
@@ -198,7 +508,7 @@
                     const data = await res.json();
                     if (data.success) {
                         uploadedImageUrls.push(data.data.link);
-                        img.classList.remove('opacity-50');
+                        img.style.opacity = '1';
                     }
                 } catch (err) {
                     console.error("Error uploading image:", err);
@@ -211,46 +521,54 @@
             e.preventDefault();
 
             if (selectedLat === null || selectedLng === null) {
-                alert("Please select your business location on the map first!");
+                toast("Please set your business location on the map first.", 'warn');
                 return;
             }
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "Saving & Publishing...";
+            submitBtn.innerText = "Saving & publishing…";
 
-            const category = document.getElementById('category').value;
+            const selectedCatVal = document.getElementById('category').value;
             const name = document.getElementById('name').value;
             const phone = document.getElementById('phone').value;
-            const description = document.getElementById('description').value;
+
+            let mainCategory = selectedCatVal;
+            let subCategory = '';
+
+            if (selectedCatVal === 'islamic_worship') {
+                mainCategory = 'worship';
+                subCategory = 'islamic';
+            } else if (selectedCatVal === 'christian_worship') {
+                mainCategory = 'worship';
+                subCategory = 'christian';
+            }
 
             try {
                 await db.collection('services').add({
-                    category: category,
+                    category: mainCategory,
+                    subcategory: subCategory,
                     name: name,
                     phone: phone,
-                    address: description,
-                    description: description,
                     lat: selectedLat,
                     lng: selectedLng,
                     images: uploadedImageUrls,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert("Service published successfully!");
+                toast("Service published — travelers can find you now.", 'ok');
                 document.getElementById('serviceForm').reset();
                 document.getElementById('imagePreview').innerHTML = '';
                 uploadedImageUrls = [];
             } catch (err) {
                 console.error(err);
-                alert("Error saving service: " + err.message);
+                toast("Error saving service: " + err.message, 'warn');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "💾 Save & Publish Service";
+                submitBtn.innerText = "Publish service";
             }
         });
 
-        // Load Leaflet map on DOM load
         document.addEventListener("DOMContentLoaded", initMap);
     </script>
 </body>
