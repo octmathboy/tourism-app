@@ -9,8 +9,11 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <!-- Leaflet OpenStreetMap CSS & JS (100% Free - No Key Required) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #map { height: 260px; width: 100%; border-radius: 0.75rem; }
+        #map { height: 260px; width: 100%; border-radius: 0.75rem; z-index: 1; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen flex items-center justify-center p-3 sm:p-6 font-sans">
@@ -21,7 +24,7 @@
         <div class="bg-emerald-600 p-6 text-white text-center shadow-sm">
             <span class="inline-block bg-emerald-500 text-emerald-100 text-xs px-3 py-1 rounded-full font-medium mb-2">Partner Portal</span>
             <h1 class="text-2xl font-extrabold tracking-tight">Add New Service</h1>
-            <p class="text-emerald-100 text-xs mt-1">Pin your business on Google Maps & submit details</p>
+            <p class="text-emerald-100 text-xs mt-1">Pin your business location & submit details</p>
         </div>
 
         <form id="serviceForm" class="p-5 sm:p-7 space-y-4">
@@ -71,20 +74,16 @@
                 <div id="imagePreview" class="flex flex-wrap gap-2 mt-3"></div>
             </div>
 
-            <!-- Interactive Google Map Location Picker -->
+            <!-- Free Interactive Map Location Picker -->
             <div class="pt-2">
                 <div class="flex justify-between items-center mb-1.5">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Set Location on Google Maps</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Set Location on Map</label>
                     <button type="button" onclick="centerToDevice()" class="text-xs text-emerald-600 font-semibold hover:underline">
                         📍 My Current GPS Location
                     </button>
                 </div>
 
-                <!-- Google Places Search Box -->
-                <input id="pac-input" type="text" placeholder="Search street, area, or city name..." 
-                       class="w-full text-xs p-2.5 mb-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-
-                <!-- Map Container -->
+                <!-- Leaflet Map Container -->
                 <div id="map" class="shadow-inner border border-gray-200"></div>
 
                 <!-- Display Selected Coordinates -->
@@ -105,7 +104,7 @@
     </div>
 
     <script>
-        // Firebase Configuration (Replace with your actual keys from Firebase Console)
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAMpi80yJqhAeU2DKRdcpJccZn-VM0jTI0",
             authDomain: "tourism-app-b14df.firebaseapp.com",
@@ -120,59 +119,33 @@
 
         let selectedLat = null;
         let selectedLng = null;
-        let map, marker, searchBox;
+        let map, marker;
         let uploadedImageUrls = [];
 
-        // 1. Initialize Google Maps
+        // 1. Initialize Leaflet Map (OpenStreetMap)
         function initMap() {
-            const defaultPos = { lat: 35.6980, lng: -0.6330 }; // Default initial view
+            const defaultPos = [35.6980, -0.6330]; // Default location coordinates
 
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 14,
-                center: defaultPos,
-                disableDefaultUI: false,
-                zoomControl: true,
+            map = L.map('map').setView(defaultPos, 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            marker = L.marker(defaultPos, { draggable: true }).addTo(map);
+
+            updateCoords(defaultPos[0], defaultPos[1]);
+
+            // Listen for marker drag end
+            marker.on('dragend', function (e) {
+                const coord = e.target.getLatLng();
+                updateCoords(coord.lat, coord.lng);
             });
 
-            marker = new google.maps.Marker({
-                position: defaultPos,
-                map: map,
-                draggable: true,
-                animation: google.maps.Animation.DROP
-            });
-
-            updateCoords(defaultPos.lat, defaultPos.lng);
-
-            // Update on marker drag end
-            google.maps.event.addListener(marker, 'dragend', function (event) {
-                updateCoords(event.latLng.lat(), event.latLng.lng());
-            });
-
-            // Update on map click
-            map.addListener('click', function (event) {
-                marker.setPosition(event.latLng);
-                updateCoords(event.latLng.lat(), event.latLng.lng());
-            });
-
-            // Setup Google Places Search Box
-            const input = document.getElementById("pac-input");
-            searchBox = new google.maps.places.SearchBox(input);
-
-            map.addListener("bounds_changed", () => {
-                searchBox.setBounds(map.getBounds());
-            });
-
-            searchBox.addListener("places_changed", () => {
-                const places = searchBox.getPlaces();
-                if (places.length === 0) return;
-
-                const place = places[0];
-                if (!place.geometry || !place.geometry.location) return;
-
-                map.setCenter(place.geometry.location);
-                map.setZoom(16);
-                marker.setPosition(place.geometry.location);
-                updateCoords(place.geometry.location.lat(), place.geometry.location.lng());
+            // Listen for map click
+            map.on('click', function (e) {
+                marker.setLatLng(e.latlng);
+                updateCoords(e.latlng.lat, e.latlng.lng);
             });
         }
 
@@ -183,22 +156,22 @@
             document.getElementById('lngDisplay').innerText = lng.toFixed(6);
         }
 
-        // 2. Center to device current GPS location
+        // 2. Center map on device GPS
         function centerToDevice() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
-                    const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    map.setCenter(coords);
-                    map.setZoom(16);
-                    marker.setPosition(coords);
-                    updateCoords(coords.lat, coords.lng);
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    map.setView([lat, lng], 16);
+                    marker.setLatLng([lat, lng]);
+                    updateCoords(lat, lng);
                 }, () => {
                     alert("Could not access your device's current GPS location.");
                 });
             }
         }
 
-        // 3. Upload gallery images automatically
+        // 3. Image preview and upload handling
         document.getElementById('imageInput').addEventListener('change', async (e) => {
             const files = e.target.files;
             const previewContainer = document.getElementById('imagePreview');
@@ -233,7 +206,7 @@
             }
         });
 
-        // 4. Save data to Firebase Firestore
+        // 4. Save entry to Firestore
         document.getElementById('serviceForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -276,9 +249,9 @@
                 submitBtn.innerText = "💾 Save & Publish Service";
             }
         });
-    </script>
 
-    <!-- Google Maps API Script (Replace YOUR_GOOGLE_MAPS_API_KEY with your key) -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBU0BZeORfj2mNcARrUc4IfYZUm0zQggiA'&libraries=places&callback=initMap" async defer></script>
+        // Load Leaflet map on DOM load
+        document.addEventListener("DOMContentLoaded", initMap);
+    </script>
 </body>
 </html>
